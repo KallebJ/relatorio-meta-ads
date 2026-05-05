@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Relatório · Meta Ads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0E0E0C;
+  --bg2:       #161614;
+  --bg3:       #1E1E1B;
+  --brd:       #2A2A27;
+  --brd2:      #363632;
+  --azul:      #4B9EFF;
+  --azul-dim:  #1A3A5C;
+  --verde:     #3DD68C;
+  --verm:      #FF5C5C;
+  --txt:       #E8E6DF;
+  --txt2:      #9E9C95;
+  --txt3:      #5C5B55;
+  --font:      'DM Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --r:         10px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  border-bottom: 1px solid var(--brd);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  background: rgba(14,14,12,.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+.logo {
+  width: 32px; height: 32px;
+  background: var(--azul);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo svg { width: 18px; height: 18px; }
+header h1 { font-size: 15px; font-weight: 600; color: var(--txt); }
+header span { font-size: 12px; color: var(--txt3); font-family: var(--mono); margin-left: auto; }
+
+/* ── Layout ── */
+.wrap {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  min-height: calc(100vh - 61px);
+}
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; }
+}
+
+/* ── Sidebar (formulário) ── */
+.sidebar {
+  border-right: 1px solid var(--brd);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  height: calc(100vh - 61px);
+  position: sticky;
+  top: 61px;
+}
+@media (max-width: 860px) {
+  .sidebar { height: auto; position: static; border-right: none; border-bottom: 1px solid var(--brd); }
+}
+
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+}
+
+/* ── Campos ── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--txt2);
+}
+.field-hint {
+  font-size: 11px;
+  color: var(--txt3);
+  font-family: var(--mono);
+}
+
+/* Drop zone */
+.dropzone {
+  border: 1.5px dashed var(--brd2);
+  border-radius: var(--r);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--azul);
+  background: rgba(75,158,255,.04);
+}
+.dropzone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+}
+.dropzone-icon {
+  width: 32px; height: 32px;
+  background: var(--bg3);
+  border-radius: 8px;
+  margin: 0 auto 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--txt3);
+}
+.dropzone-text { font-size: 13px; color: var(--txt2); }
+.dropzone-text strong { color: var(--azul); }
+.dropzone-sub { font-size: 11px; color: var(--txt3); margin-top: 3px; font-family: var(--mono); }
+.dropzone.has-file { border-color: var(--verde); background: rgba(61,214,140,.04); }
+.dropzone.has-file .dropzone-icon { background: rgba(61,214,140,.12); color: var(--verde); }
+.dropzone.has-file .dropzone-text { color: var(--verde); }
+
+/* Textarea */
+textarea {
+  background: var(--bg3);
+  border: 1.5px solid var(--brd);
+  border-radius: var(--r);
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.65;
+  padding: .875rem 1rem;
+  resize: vertical;
+  min-height: 160px;
+  width: 100%;
+  transition: border-color .2s;
+  outline: none;
+}
+textarea:focus { border-color: var(--azul); }
+textarea::placeholder { color: var(--txt3); }
+
+/* Botão */
+.btn-gerar {
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  padding: .875rem 1.5rem;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity .2s, transform .1s;
+}
+.btn-gerar:hover { opacity: .88; }
+.btn-gerar:active { transform: scale(.98); }
+.btn-gerar:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* Spinner */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+.btn-gerar.loading .spinner { display: block; }
+.btn-gerar.loading .btn-label { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Erro */
+.error-box {
+  background: rgba(255,92,92,.08);
+  border: 1px solid rgba(255,92,92,.25);
+  border-radius: var(--r);
+  padding: .875rem 1rem;
+  font-size: 13px;
+  color: var(--verm);
+  display: none;
+}
+.error-box.show { display: block; }
+
+/* ── Área de preview ── */
+.preview-area {
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  text-align: center;
+  color: var(--txt3);
+}
+.preview-empty-icon {
+  width: 56px; height: 56px;
+  background: var(--bg3);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--txt3);
+  margin-bottom: .5rem;
+}
+.preview-empty h2 { font-size: 16px; font-weight: 500; color: var(--txt2); }
+.preview-empty p  { font-size: 13px; max-width: 280px; line-height: 1.6; }
+
+.preview-toolbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1.5rem;
+  border-bottom: 1px solid var(--brd);
+  background: var(--bg);
+  flex-shrink: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.preview-toolbar.show { display: flex; }
+.preview-info { font-size: 12px; color: var(--txt2); font-family: var(--mono); }
+.preview-info strong { color: var(--verde); }
+
+.btn-download {
+  background: var(--bg3);
+  border: 1px solid var(--brd2);
+  border-radius: 8px;
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: .5rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: border-color .2s, background .2s;
+  flex-shrink: 0;
+}
+.btn-download:hover { border-color: var(--azul); background: rgba(75,158,255,.06); color: var(--azul); }
+
+.preview-frame-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+  background: white;
+}
+#preview-iframe.show { display: block; }
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--bg2);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--txt2);
+  font-size: 13px;
+}
+.loading-overlay.show { display: flex; }
+.loading-bar {
+  width: 200px;
+  height: 3px;
+  background: var(--brd);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.loading-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--azul);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  </div>
+  <h1>Gerador de Relatório · Meta Ads</h1>
+  <span>Feito por Kalleb</span>
+</header>
+
+<div class="wrap">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Configurar relatório</div>
+
+    <!-- CSV -->
+    <div class="field">
+      <label>Arquivo de dados</label>
+      <div class="dropzone" id="drop-csv">
+        <input type="file" id="input-csv" accept=".csv">
+        <div class="dropzone-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="dropzone-text"><strong>Clique para selecionar</strong> ou arraste</div>
+        <div class="dropzone-sub">dados.csv — export do Meta Ads Manager</div>
+      </div>
+    </div>
+
+    <!-- Análise -->
+    <div class="field">
+      <label>Análise em texto</label>
+      <span class="field-hint">Use linhas curtas sem ponto como títulos de seção. Itens com "-" viram lista.</span>
+      <textarea id="input-analise" placeholder="Visao Geral&#10;Escreva aqui sua análise do período...&#10;&#10;Recomendacoes&#10;- Pausar anúncio X&#10;- Aumentar orçamento no conjunto Y"></textarea>
+    </div>
+
+    <!-- Erro -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- Botão -->
+    <button class="btn-gerar" id="btn-gerar" disabled>
+      <span class="spinner"></span>
+      <span class="btn-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Gerar Relatório
+      </span>
+    </button>
+
+  </aside>
+
+  <!-- Preview -->
+  <main class="preview-area">
+
+    <div class="preview-toolbar" id="preview-toolbar">
+      <div class="preview-info">Relatório gerado · <strong id="preview-periodo"></strong></div>
+      <a class="btn-download" id="btn-download" href="#" download="relatorio_trafego.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar HTML
+      </a>
+    </div>
+
+    <div class="preview-frame-wrap">
+      <div class="preview-empty" id="preview-empty">
+        <div class="preview-empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <h2>Preview do relatório</h2>
+        <p>Faça upload do CSV e escreva a análise para visualizar o relatório aqui.</p>
+      </div>
+
+      <div class="loading-overlay" id="loading-overlay">
+        <div>Gerando relatório...</div>
+        <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
+      </div>
+
+      <iframe id="preview-iframe" title="Preview do relatório"></iframe>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const inputCsv    = document.getElementById("input-csv");
+const dropCsv     = document.getElementById("drop-csv");
+const inputAnal   = document.getElementById("input-analise");
+const btnGerar    = document.getElementById("btn-gerar");
+const errorBox    = document.getElementById("error-box");
+const toolbar     = document.getElementById("preview-toolbar");
+const periodoEl   = document.getElementById("preview-periodo");
+const btnDownload = document.getElementById("btn-download");
+const iframe      = document.getElementById("preview-iframe");
+const empty       = document.getElementById("preview-empty");
+const loadOvl     = document.getElementById("loading-overlay");
+const loadBar     = document.getElementById("loading-bar-fill");
+
+let csvFile = null;
+
+// ── Drag & drop no CSV ──
+["dragenter","dragover"].forEach(e => dropCsv.addEventListener(e, ev => {
+  ev.preventDefault(); dropCsv.classList.add("drag-over");
+}));
+["dragleave","drop"].forEach(e => dropCsv.addEventListener(e, ev => {
+  ev.preventDefault(); dropCsv.classList.remove("drag-over");
+}));
+dropCsv.addEventListener("drop", ev => {
+  const f = ev.dataTransfer.files[0];
+  if (f && f.name.endsWith(".csv")) setFile(f);
+});
+inputCsv.addEventListener("change", () => {
+  if (inputCsv.files[0]) setFile(inputCsv.files[0]);
+});
+
+function setFile(f) {
+  csvFile = f;
+  dropCsv.classList.add("has-file");
+  dropCsv.querySelector(".dropzone-text").innerHTML = `<strong>${f.name}</strong>`;
+  dropCsv.querySelector(".dropzone-sub").textContent = (f.size/1024).toFixed(1) + " KB";
+  dropCsv.querySelector(".dropzone-icon").innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+  checkReady();
+}
+
+inputAnal.addEventListener("input", checkReady);
+
+function checkReady() {
+  btnGerar.disabled = !(csvFile && inputAnal.value.trim().length > 0);
+}
+
+// ── Gerar ──
+btnGerar.addEventListener("click", async () => {
+  setLoading(true);
+  hideError();
+
+  // Anima barra
+  loadBar.style.width = "0%";
+  setTimeout(() => loadBar.style.width = "60%", 100);
+
+  const fd = new FormData();
+  fd.append("csv", csvFile);
+  fd.append("analise_texto", inputAnal.value);
+
+  try {
+    const res  = await fetch("/gerar", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.erro || "Erro ao gerar o relatório.");
+      return;
+    }
+
+    loadBar.style.width = "100%";
+    await sleep(300);
+
+    // Injeta no iframe
+    const blob = new Blob([data.html], { type: "text/html" });
+    const url  = URL.createObjectURL(blob);
+    iframe.src = url;
+
+    // Download
+    btnDownload.href = url;
+    btnDownload.download = `relatorio_${data.periodo.replace(/\s/g,"_").replace(/[\/–-]/g,"")}.html`;
+
+    periodoEl.textContent = data.periodo;
+
+    empty.style.display    = "none";
+    toolbar.classList.add("show");
+    iframe.classList.add("show");
+
+  } catch (e) {
+    showError("Erro de conexão com o servidor. Tente novamente.");
+  } finally {
+    setLoading(false);
+  }
+});
+
+function setLoading(on) {
+  btnGerar.disabled = on;
+  btnGerar.classList.toggle("loading", on);
+  loadOvl.classList.toggle("show", on);
+  if (!on) loadBar.style.width = "0%";
+}
+
+function showError(msg) {
+  errorBox.textContent = "⚠ " + msg;
+  errorBox.classList.add("show");
+}
+function hideError() { errorBox.classList.remove("show"); }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
